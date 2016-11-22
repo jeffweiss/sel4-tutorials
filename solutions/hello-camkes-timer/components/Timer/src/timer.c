@@ -34,6 +34,9 @@ void irq_handle(void)
     
     /* Signal the RPC interface. */
     sem_post();
+
+    /* Acknowledge the interrupt to the kernel */
+    irq_acknowledge();
 }
 
 void hello__init()
