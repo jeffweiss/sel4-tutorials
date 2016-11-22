@@ -13,21 +13,16 @@
 #include <platsupport/mach/epit.h>
 #include <platsupport/timer.h>
 
-#include <Timer.h>
+#include <camkes.h>
 
 #define NS_IN_SECOND 1000000000ULL
 
 pstimer_t *timer_drv = NULL;
 
-/* this callback handler is meant to be invoked when the first interrupt 
- * arrives on the interrupt event interface.
- * Note: the callback handler must be explicitly registered before the 
- * callback will be invoked.  
- * Also the registration is one-shot only, if it wants to be invoked 
- * when a new interrupt arrives then it must re-register itself.  Or it can
- * also register a different handler.
- */
-void epit_irq_callback(void *_ UNUSED)
+/* For each interface connected with seL4HardwareInterrupt, a function
+ * with the prototype "void <interface>_handle(void);" must be defined.
+ * This function is called each time an irq is received. */
+void irq_handle(void)
 {
     /* TODO: call the platsupport library to handle the interrupt. */
     /* hint: void timer_handle_irq(pstimer_t* device, uint32_t irq)
@@ -38,13 +33,6 @@ void epit_irq_callback(void *_ UNUSED)
     
     /* Signal the RPC interface. */
     sem_post();
-
-    /* TODO: register the second callback for this event. */
-    /* hint 1: use the function <IRQ interface name>_reg_callback()
-     * hint 2: register the function "epit_irq_callback"
-     * hint 3: pass NULL as the extra argument to the callback
-     * hint 4: look at https://github.com/seL4/camkes-tool/blob/master/docs/index.md#an-example-of-events
-     */
 }
 
 void hello__init()
@@ -64,13 +52,6 @@ void hello__init()
      * @param config timer configuration structure
      * @return timer handler
      * https://github.com/seL4/util_libs/blob/master/libplatsupport/mach_include/imx/platsupport/mach/epit.h#L28
-     */
-
-    /* TODO: register the first callback handler for this interface */
-    /* hint 1: use the function <IRQ interface name>_reg_callback()
-     * hint 2: register the function "epit_irq_callback"
-     * hint 3: pass NULL as the extra argument to the callback
-     * hint 4: look at https://github.com/seL4/camkes-tool/blob/master/docs/index.md#an-example-of-events
      */
 }
 

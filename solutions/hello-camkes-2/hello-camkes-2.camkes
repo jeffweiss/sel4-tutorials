@@ -26,11 +26,11 @@ assembly {
 		
                 /* TODO 5: Event connections */
                 /* hint 1: connect each "emits" interface in a component to the "consumes" interface in the other
-		 * hint 2: use seL4Asynch as the connector
+		 * hint 2: use seL4Notification as the connector
                  * hint 3: look at https://github.com/seL4/camkes-tool/blob/2.1.0/docs/index.md#an-example-of-events
                  */
-		connection seL4Asynch echo_event(from client.echo, to echo.echo);
-		connection seL4Asynch client_event(from echo.client, to client.client);
+		connection seL4Notification echo_event(from client.echo, to echo.echo);
+		connection seL4Notification client_event(from echo.client, to client.client);
 
                 /* TODO 6: Dataport connections */
                 /* hint 1: connect the corresponding dataport interfaces of the components to each other
@@ -51,15 +51,15 @@ assembly {
 		echo.priority = 254;
 
                 /* TODO 8: restrict access to dataports */
-		/* hint 1: use attributes <connection name>.to_access and <connection name>.from_access
-		 * hint 2: appropriate values for the to_access and from_access attributes are: "R" or "W"
+		/* hint 1: use attribute <instance name>.<interface name>_access to control access to a dataport interface
+		 * hint 2: appropriate values for the *_access attributes are: "R" or "W"
 		 * hint 4: make the "Buf" dataport read only for the Echo component
 		 * hint 3: make the "str_buf_t" dataport read only for the Client component
                  */
-		data_conn.to_access = "R";
-		data_conn.from_access = "W";
-		typed_data_conn.to_access ="W";
-		typed_data_conn.from_access = "R";
+        echo.d_access = "R";
+        client.d_access = "W";
+        echo.d_typed_access = "W";
+        client.d_typed_access = "R";
 	}
 }
 
