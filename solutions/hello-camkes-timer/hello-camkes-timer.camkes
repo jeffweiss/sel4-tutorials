@@ -48,8 +48,10 @@ assembly {
                 * hint 2: look at
 		* https://github.com/seL4/camkes-tool/blob/2.1.0/docs/index.md#hardware-components
 		*/
-               timerbase.reg_attributes = "0x53F98000:0x1000"; //device memory
-               timerbase.irq_attributes	= 27;		       //Timer interrupt
+                // device memory
+                timerbase.reg_paddr = 0x53F98000;
+                timerbase.reg_size = 0x1000;
+                timerbase.irq_irq_number = 27;		       //Timer interrupt
 
 	       /* assign an initial value to semaphore */
 	       timer.sem_value = 0;
