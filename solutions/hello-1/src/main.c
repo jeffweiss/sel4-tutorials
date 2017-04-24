@@ -21,10 +21,9 @@
 /* TODO 1: add a main function to print a message */
 /* hint: printf */
 
-int main(void)
-{
+
+int main(void) {
     printf("hello world\n");
 
     return 0;
 }
-

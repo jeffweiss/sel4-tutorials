@@ -37,6 +37,7 @@
 #include <sel4utils/process.h>
 
 #include <sel4platsupport/timer.h>
+#include <sel4platsupport/bootinfo.h>
 #include <platsupport/plat/timer.h>
 
 /* constants */
@@ -71,15 +72,15 @@ UNUSED static int thread_2_stack[THREAD_2_STACK_SIZE];
 /* convenience function */
 extern void name_thread(seL4_CPtr tcb, char *name);
 
-int main(void)
-{
+int main(void) {
     UNUSED int error;
+
+    /* get boot info */
+    info = platsupport_get_bootinfo();
+    ZF_LOGF_IF(info == NULL, "Failed to get bootinfo.");
 
     /* give us a name: useful for debugging if the thread faults */
     name_thread(seL4_CapInitThreadTCB, "hello-timer");
-
-    /* get boot info */
-    info = seL4_GetBootInfo();
 
     /* init simple */
     simple_default_init_bootinfo(&simple, info);
@@ -89,29 +90,29 @@ int main(void)
 
     /* create an allocator */
     allocman = bootstrap_use_current_simple(&simple, ALLOCATOR_STATIC_POOL_SIZE,
-        allocator_mem_pool);
+                                            allocator_mem_pool);
     assert(allocman);
 
     /* create a vka (interface for interacting with the underlying allocator) */
     allocman_make_vka(&vka, allocman);
 
-   /* create a vspace object to manage our vspace */
+    /* create a vspace object to manage our vspace */
     error = sel4utils_bootstrap_vspace_with_bootinfo_leaky(&vspace,
-        &data, simple_get_pd(&simple), &vka, info);
+                                                           &data, simple_get_pd(&simple), &vka, info);
 
     /* fill the allocator with virtual memory */
     void *vaddr;
     UNUSED reservation_t virtual_reservation;
     virtual_reservation = vspace_reserve_range(&vspace,
-        ALLOCATOR_VIRTUAL_POOL_SIZE, seL4_AllRights, 1, &vaddr);
+                                               ALLOCATOR_VIRTUAL_POOL_SIZE, seL4_AllRights, 1, &vaddr);
     assert(virtual_reservation.res);
     bootstrap_configure_virtual_pool(allocman, vaddr,
-        ALLOCATOR_VIRTUAL_POOL_SIZE, simple_get_pd(&simple));
+                                     ALLOCATOR_VIRTUAL_POOL_SIZE, simple_get_pd(&simple));
 
-   /* use sel4utils to make a new process */
+    /* use sel4utils to make a new process */
     sel4utils_process_t new_process;
     error = sel4utils_configure_process(&new_process, &vka, &vspace,
-        APP_PRIORITY, APP_IMAGE_NAME);
+                                        APP_PRIORITY, APP_IMAGE_NAME);
     assert(error == 0);
 
     /* give the new process's thread a name */
@@ -123,7 +124,7 @@ int main(void)
     assert(error == 0);
 
     /*
-     * make a badged endpoint in the new process's cspace.  This copy 
+     * make a badged endpoint in the new process's cspace.  This copy
      * will be used to send an IPC to the original cap
      */
 
@@ -134,7 +135,7 @@ int main(void)
 
     /* copy the endpont cap and add a badge to the new cap */
     new_ep_cap = sel4utils_mint_cap_to_process(&new_process, ep_cap_path,
-        seL4_AllRights, seL4_CapData_Badge_new(EP_BADGE));
+                                               seL4_AllRights, seL4_CapData_Badge_new(EP_BADGE));
     assert(new_ep_cap != 0);
 
     /* spawn the process */
@@ -149,9 +150,11 @@ int main(void)
      * @return 0 on success
      * https://github.com/seL4/libsel4vka/blob/master/include/vka/object.h#L98
      */
+
     vka_object_t aep_object = {0};
     error = vka_alloc_notification(&vka, &aep_object);
     assert(error == 0);
+
 
     /* TODO 2: call sel4platsupport library to get the default timer */
     /* hint: sel4platsupport_get_default_timer
@@ -162,8 +165,10 @@ int main(void)
      * @param aep Async endpoint to receive the interrupt
      * @return Pointer to timer structure
      */
+
     timer = sel4platsupport_get_default_timer(&vka, &vspace, &simple, aep_object.cptr);
     assert(timer != NULL);
+
 
     /* we are done, say hello */
     printf("main: hello world\n");
@@ -195,27 +200,31 @@ int main(void)
      * one millisecond, and count for 1000 times to make one second.
      */
     int count = 0;
-    while(1) {
+    while (1) {
         /* TODO 3: wait for the timeout */
-	/* hint 1: set timeout to 1 millisecond
-	 * hint 2: wait for the incoming interrupt
-	 * hint 3: handle the interrupt
-	 *
-	 * int timer_oneshot_relative(pstimer_t* device, uint64_t ns)
-	 * @param device generic timer handler
-	 * @param ns number of nanoseconds before firing the interrupt
-	 * @return 0 on success
-	 *
-         * void sel4_timer_handle_single_irq(seL4_timer_t* timer);
-	 * @param device generic timer handler
-	 *
-	 * https://github.com/seL4/util_libs/blob/master/libplatsupport/include/platsupport/timer.h#L146
-	 */
+        /* hint 1: set timeout to 1 millisecond
+         * hint 2: wait for the incoming interrupt
+         * hint 3: handle the interrupt
+         *
+         * int timer_oneshot_relative(pstimer_t* device, uint64_t ns)
+         * @param device generic timer handler
+         * @param ns number of nanoseconds before firing the interrupt
+         * @return 0 on success
+         *
+             * void sel4_timer_handle_single_irq(seL4_timer_t* timer);
+         * @param device generic timer handler
+         *
+         * https://github.com/seL4/util_libs/blob/master/libplatsupport/include/platsupport/timer.h#L146
+         */
+
         timer_oneshot_relative(timer->timer, 1000 * 1000);
         seL4_Wait(aep_object.cptr, &sender);
-	sel4_timer_handle_single_irq(timer);
+        sel4_timer_handle_single_irq(timer);
+
         count++;
-        if (count == 1000 * msg) break;
+        if (count == 1000 * msg) {
+            break;
+        }
     }
 
     /* get the current time */
@@ -229,4 +238,3 @@ int main(void)
 
     return 0;
 }
-

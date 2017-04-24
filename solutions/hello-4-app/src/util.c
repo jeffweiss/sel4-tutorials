@@ -37,4 +37,3 @@ void name_thread(seL4_CPtr tcb, char *name) {
 }
 
 
-
