@@ -17,7 +17,6 @@
 #include <ctype.h>
 
 #include <camkes/dataport.h>
-#include <sel4utils/sel4_zf_logif.h>
 
 /* generated header for our component */
 #include <camkes.h>
@@ -89,8 +88,7 @@ void callback_handler_1(void *a) {
      * hint 4: look at https://github.com/seL4/camkes-tool/blob/2.1.0/docs/index.md#an-example-of-events
      */
 
-    int error = echo_reg_callback(callback_handler_2, NULL);
-    ZF_LOGF_IF(error != 0, "Failed to register callback");
+    echo_reg_callback(callback_handler_2, NULL);
 
 
     /* TODO 22: notify the client that there is new data available for it */
@@ -140,8 +138,7 @@ void callback_handler_2(void *a) {
      * hint 4: look at https://github.com/seL4/camkes-tool/blob/2.1.0/docs/index.md#an-example-of-events
      */
 
-    int error = echo_reg_callback(callback_handler_1, NULL);
-    ZF_LOGF_IF(error != 0, "Failed to register callback");
+    echo_reg_callback(callback_handler_1, NULL);
 
 
     /* TODO 25: notify the client that we are done reading the data */
@@ -167,7 +164,6 @@ void echo__init(void) {
      * hint 4: look at https://github.com/seL4/camkes-tool/blob/2.1.0/docs/index.md#an-example-of-events
      */
 
-    int error = echo_reg_callback(callback_handler_1, NULL);
-    ZF_LOGF_IF(error != 0, "Failed to register callback");
+    echo_reg_callback(callback_handler_1, NULL);
 
 }

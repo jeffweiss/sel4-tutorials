@@ -12,9 +12,8 @@
 
 #include <platsupport/mach/epit.h>
 #include <platsupport/timer.h>
-#include <sel4utils/sel4_zf_logif.h>
 
-#include <camkes.h>
+#include <Timer.h>
 
 #define NS_IN_SECOND 1000000000ULL
 
@@ -28,9 +27,7 @@ pstimer_t *timer_drv = NULL;
  * when a new interrupt arrives then it must re-register itself.  Or it can
  * also register a different handler.
  */
-void irq_handle(void) {
-    int error;
-
+void epit_irq_callback(void *_ UNUSED) {
     /* TODO: call the platsupport library to handle the interrupt. */
     /* hint: void timer_handle_irq(pstimer_t* device, uint32_t irq)
      * @param device Structure for the timer device driver.
@@ -40,11 +37,13 @@ void irq_handle(void) {
 
 
     /* Signal the RPC interface. */
-    error = sem_post();
-    ZF_LOGF_IF(error != 0, "Failed to post to semaphore");
+    sem_post();
 
-    /* TODO: acknowledge the interrupt */
-    /* hint 1: use the function <IRQ interface name>_acknowledge()
+    /* TODO: register the second callback for this event. */
+    /* hint 1: use the function <IRQ interface name>_reg_callback()
+     * hint 2: register the function "epit_irq_callback"
+     * hint 3: pass NULL as the extra argument to the callback
+     * hint 4: look at https://github.com/seL4/camkes-tool/blob/2.1.0/docs/index.md#an-example-of-events
      */
 
 }
@@ -65,6 +64,14 @@ void hello__init() {
      * @param config timer configuration structure
      * @return timer handler
      * https://github.com/seL4/util_libs/blob/master/libplatsupport/mach_include/imx/platsupport/mach/epit.h#L28
+     */
+
+
+    /* TODO: register the first callback handler for this interface */
+    /* hint 1: use the function <IRQ interface name>_reg_callback()
+     * hint 2: register the function "epit_irq_callback"
+     * hint 3: pass NULL as the extra argument to the callback
+     * hint 4: look at https://github.com/seL4/camkes-tool/blob/2.1.0/docs/index.md#an-example-of-events
      */
 
 }
@@ -90,6 +97,5 @@ void hello_sleep(int sec) {
 
 
     /* Wait for the timeout interrupt */
-    int error = sem_wait();
-    ZF_LOGF_IF(error != 0, "Failed to wait on semaphore");
+    sem_wait();
 }

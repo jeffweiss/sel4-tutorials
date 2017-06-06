@@ -17,7 +17,6 @@
 #include <ctype.h>
 
 #include <camkes/dataport.h>
-#include <sel4utils/sel4_zf_logif.h>
 
 /* generated header for our component */
 #include <camkes.h>
